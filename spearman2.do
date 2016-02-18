@@ -44,7 +44,7 @@ egen _spearman2_plotaxis = axis(_spearman2_forsort), label(_spearman2_varname)
 
 graph dot (asis) _spearman2_rho2 in 2/`=_N', ///
  over(_spearman2_plotaxis) ///
- title(Predictive Capability) ///
+ title(Potential Predictive Power) ///
  ytitle(Spearman's {&rho}{superscript:2} (adjusted))
 restore
 end
