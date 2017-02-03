@@ -1,4 +1,4 @@
-program drop getvdata
+capture program drop getvdata
 
 program getvdata
 	args key
