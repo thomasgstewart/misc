@@ -1256,6 +1256,10 @@ else if `"`key'"' == "11.ex.Sepsis" {
 import delimited "http://biostat.mc.vanderbilt.edu/dupontwd/wddtext/data/11.ex.Sepsis.csv", clear
 exit
 }
+else if `"`key'"' == "sat" {
+import delimited "http://biostat.mc.vanderbilt.edu/wiki/pub/Main/MsciBiostatIIAssignments/sat.csv", clear
+exit
+}
 else if `"`key'"' == "key"{
 display "abm, acath, birth_estriol, cdystonia, dmd, esopH, FEV, lead, nhgh, pbc, prostate, rhc, sex.age.response, stressEcho, support, titanic3, valung, 1.3.2.Sepsis, 1.4.11.Sepsis, 10.7.ERpolymorphism, 11.2.Isoproterenol, 11.2.Long.Isoproterenol, 11.AreaUnderCurve, 2.12.Poisson, 2.18.Funding, 2.20.Framingham, 2.ex.vonHippelLindau, 3.ex.Funding, 4.11.Sepsis, 4.18.Sepsis, 4.21.EsophagealCa, 4.ex.Sepsis, 5.5.EsophagealCa, 5.ex.InjuryDeath, 6.9.Hemorrhage, 6.ex.Breast, 8.12.Framingham, 8.7.Framingham, 8.8.2.Person-Years, 8.8.2.Survival, 8.ex.InjuryDeath, 11.ex.Sepsis"
 }
