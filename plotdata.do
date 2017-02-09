@@ -39,6 +39,16 @@ if "`at'" != "" {
  		}
  	}
  }
+ else {
+ display "Use this function to add extra data to your dataset for for plotting."
+ display " "
+ display "Example syntax: "
+ display "  plotdata, at(bmi=19.5(1)32.5 sex=1/2 age=45) plotindicator(plot1)"
+ display " "
+ display "Within the at() function, specify the values of the variables at which"
+ display "you want predict the outcome."
+ exit
+ }
 
 if "`plotindicator'" == "" {
   local plotindicator = "_plotindicator"
