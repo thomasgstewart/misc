@@ -4,7 +4,7 @@ program spearman2
 
 syntax varlist [if] [in]
 
-if "`varlist'" == "" {
+if `"`varlist'"' == "" {
 display "Spearman2 provides guidance when deciding predictor complexity of"
 display "a prespecified set of predictor variables."
 display " "
