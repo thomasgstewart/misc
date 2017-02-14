@@ -4,6 +4,17 @@ program spearman2
 
 syntax varlist [if] [in]
 
+if "`varlist'" == "" {
+display "Spearman2 provides guidance when deciding predictor complexity of"
+display "a prespecified set of predictor variables."
+display " "
+display "Syntax:"
+display "spearman2 Y X1 X2 X3 ... Xp"
+display " "
+display "The function requires the egenmore package."
+exit
+}
+
 preserve
 
 local nvars : word count `varlist'
