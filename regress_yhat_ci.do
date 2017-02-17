@@ -155,3 +155,58 @@ foreach j in `centiles' {
 quietly drop _tgsdrop*
 
 end
+
+
+capture program drop cox_lhhat_ci
+program cox_lhhat_ci
+
+syntax [,xb alpha(str) stub(str) drop]
+
+
+local cmd = e(cmd)
+if "`cmd'" != "cox" {
+  display "This function is for cox regression"
+  error 301
+}
+
+	capture drop _tgsdrop*
+
+	if "`alpha'" == "" {
+	  local alpha = 0.05
+	}
+	local z = invnorm(1 - `alpha'/2)
+	
+	if "`xb'" == "" {
+	  local xb = "rh"
+	}
+
+
+	predict _tgsdrop_xbhat, xb
+	predict _tgsdrop_xbhatse, stdp
+
+	generate _tgsdrop_xbhat_lb = _tgsdrop_xbhat - `z' * _tgsdrop_xbhatse
+	generate _tgsdrop_xbhat_ub = _tgsdrop_xbhat + `z' * _tgsdrop_xbhatse
+
+	local dv = "time"
+	if "`drop'" == "drop" {
+		capture fussydrop `stub'`dv'_`xb'hat
+		capture fussydrop `stub'`dv'_`xb'hat_lb
+		capture fussydrop `stub'`dv'_`xb'hat_ub
+	}
+
+	if "`xb'" == "xb" {
+		generate `stub'`dv'_`xb'hat = _tgsdrop_xbhat
+		generate `stub'`dv'_`xb'hat_lb = _tgsdrop_xbhat_lb
+		generate `stub'`dv'_`xb'hat_ub = _tgsdrop_xbhat_ub
+	}
+	if "`xb'" == "rh" {
+		generate `stub'`dv'_`xb'hat = exp(_tgsdrop_xbhat)
+		generate `stub'`dv'_`xb'hat_lb = exp(_tgsdrop_xbhat_lb)
+		generate `stub'`dv'_`xb'hat_ub = exp(_tgsdrop_xbhat_ub)
+	}
+
+	drop _tgsdrop*
+
+end
+
+
