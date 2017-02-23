@@ -63,7 +63,6 @@ end
 
 
 
-
 capture program drop optimism_one_rep
 program optimism_one_rep, eclass
 
@@ -103,6 +102,13 @@ matrix optimism = (r(brier), r(roc_area))
 matrix colnames optimism = Brier AUC
 drop _phat
 }
+else if inlist("`1'", "stcox") == 1 {
+quietly `command'
+restore
+quietly estat concordance, all
+matrix optimism = (r(C), r(D))
+matrix colnames optimism = Harrells_C Somers_D
+}
 
 if "`cmdline'" != "" {
   
@@ -130,8 +136,8 @@ local seed = "1"
 display "setting seed(" "`seed'" ")"
 }
 
-if inlist("`e(cmd)'", "logistic", "logit", "regress") != 1 {
-  display "This command is for linear and logistic regression at the moment."
+if inlist("`e(cmd)'", "logistic", "logit", "regress", "stcox", "cox") != 1 {
+  display "This command is for linear, logistic, and cox regression at the moment."
   display "The most recent estimation command was " "`e(cmd)'"
   exit
 }
@@ -160,5 +166,3 @@ restore
 quietly estimates restore original
   
 end
-
-
