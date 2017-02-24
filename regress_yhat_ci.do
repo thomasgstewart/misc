@@ -160,7 +160,7 @@ end
 capture program drop cox_lhhat_ci
 program cox_lhhat_ci
 
-syntax [,xb alpha(str) stub(str) drop]
+syntax [,xb rh sp alpha(str) stub(str) drop]
 
 
 local cmd = e(cmd)
@@ -176,11 +176,10 @@ if "`cmd'" != "cox" {
 	}
 	local z = invnorm(1 - `alpha'/2)
 	
-	if "`xb'" == "" {
-	  local xb = "rh"
+	if "`xb'" == "" & "`sp'" == "" & "`rh'" == "" {
+	  local rh = "rh"
 	}
-
-
+	
 	predict _tgsdrop_xbhat, xb
 	predict _tgsdrop_xbhatse, stdp
 
@@ -188,25 +187,42 @@ if "`cmd'" != "cox" {
 	generate _tgsdrop_xbhat_ub = _tgsdrop_xbhat + `z' * _tgsdrop_xbhatse
 
 	local dv = "time"
-	if "`drop'" == "drop" {
-		capture fussydrop `stub'`dv'_`xb'hat
-		capture fussydrop `stub'`dv'_`xb'hat_lb
-		capture fussydrop `stub'`dv'_`xb'hat_ub
-	}
 
 	if "`xb'" == "xb" {
-		generate `stub'`dv'_`xb'hat = _tgsdrop_xbhat
-		generate `stub'`dv'_`xb'hat_lb = _tgsdrop_xbhat_lb
-		generate `stub'`dv'_`xb'hat_ub = _tgsdrop_xbhat_ub
+		if "`drop'" == "drop" {
+			capture fussydrop `stub'`dv'_xbhat
+			capture fussydrop `stub'`dv'_xbhat_lb
+			capture fussydrop `stub'`dv'_xbhat_ub
+		}
+		generate `stub'`dv'_xbhat = _tgsdrop_xbhat
+		generate `stub'`dv'_xbhat_lb = _tgsdrop_xbhat_lb
+		generate `stub'`dv'_xbhat_ub = _tgsdrop_xbhat_ub
 	}
-	if "`xb'" == "rh" {
-		generate `stub'`dv'_`xb'hat = exp(_tgsdrop_xbhat)
-		generate `stub'`dv'_`xb'hat_lb = exp(_tgsdrop_xbhat_lb)
-		generate `stub'`dv'_`xb'hat_ub = exp(_tgsdrop_xbhat_ub)
+	if "`rh'" == "rh" {
+		if "`drop'" == "drop" {
+			capture fussydrop `stub'`dv'_rhhat
+			capture fussydrop `stub'`dv'_rhhat_lb
+			capture fussydrop `stub'`dv'_rhhat_ub
+		}
+		generate `stub'`dv'_rhhat = exp(_tgsdrop_xbhat)
+		generate `stub'`dv'_rhhat_lb = exp(_tgsdrop_xbhat_lb)
+		generate `stub'`dv'_rhhat_ub = exp(_tgsdrop_xbhat_ub)
+	}
+	if "`sp'" == "sp" {
+	*http://www.stata.com/statalist/archive/2012-05/msg00271.html
+		if "`drop'" == "drop" {
+			capture fussydrop `stub'Sp_`dv'
+		}
+		capture predict double _tgsdrop_surv, basesurv
+		if _rc != 0 {
+		  display "Survival probabilities are only calculated for e(sample) data"
+		}
+		capture predict double _tgsdrop_relhaz, hr
+		capture gen double `stub'sp_`dv' = _tgsdrop_surv^_tgsdrop_relhaz
 	}
 
 	drop _tgsdrop*
-
 end
+
 
 
