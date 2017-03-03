@@ -160,8 +160,7 @@ end
 capture program drop cox_lhhat_ci
 program cox_lhhat_ci
 
-syntax [,xb rh sp alpha(str) stub(str) drop]
-
+syntax [,xb rh sp alpha(str) stub(str) qt(numlist integer >0 <100) spt(numlist integer >0) drop]
 
 local cmd = e(cmd)
 if "`cmd'" != "cox" {
@@ -176,7 +175,7 @@ if "`cmd'" != "cox" {
 	}
 	local z = invnorm(1 - `alpha'/2)
 	
-	if "`xb'" == "" & "`sp'" == "" & "`rh'" == "" {
+	if "`xb'" == "" & "`sp'" == "" & "`rh'" == "" & "`qt'" == "" & "`spt'" == ""{
 	  local rh = "rh"
 	}
 	
@@ -213,16 +212,109 @@ if "`cmd'" != "cox" {
 		if "`drop'" == "drop" {
 			capture fussydrop `stub'Sp_`dv'
 		}
-		capture predict double _tgsdrop_surv, basesurv
-		if _rc != 0 {
-		  display "Survival probabilities are only calculated for e(sample) data"
+		capture confirm variable _basesurv
+		if _rc{
+			capture predict double _basesurv, basesurv
+			if _rc != 0 {
+				display "Survival probabilities are only calculated for e(sample) data"
+			}
 		}
 		capture predict double _tgsdrop_relhaz, hr
-		capture gen double `stub'sp_`dv' = _tgsdrop_surv^_tgsdrop_relhaz
+		capture gen double `stub'sp_`dv' = _basesurv^_tgsdrop_relhaz
 	}
+	if "`spt'" != "" {
+		foreach j in `spt'{
+			if "`drop'" == "drop" {
+				capture fussydrop `stub'sp_`j'
+			}
+			quietly sp_survival, sp(`j') stub(`stub')
+		}
+	}
+	if "`qt'" != "" {
+		foreach j in `qt' {
+			if "`drop'" == "drop" {
+				capture fussydrop `stub'q`j'_time
+			}
+			quietly q_survival, q(`j') stub(`stub')
+		}
+	}
+	
 
-	drop _tgsdrop*
+	capture drop _tgsdrop*
 end
 
 
+capture program drop q_survival
+program q_survival
 
+syntax, q(real) [stub(str)]
+
+local cmd = e(cmd)
+if "`cmd'" != "cox" {
+  display "This function is for cox regression"
+  error 301
+}
+
+gen _tgsdrop_id = _n
+
+capture confirm variable _basesurv
+if _rc{
+  predict double _basesurv, basesurv
+}
+
+tempfile tmp1
+save tmp1, replace
+
+predict xb, xb
+gen lmls = log(-log(_basesurv))
+gen rhs = log(-log(`q'/100)) - xb
+stack _t lmls _tgsdrop_id rhs, into(a b) clear
+gsort -b
+gen qtime = a if _stack == 1 
+replace qtime = qtime[_n-1] if _n > 1 & qtime[_n] == .
+drop if _stack == 1
+gen _tgsdrop_id = a
+drop a b _stack
+
+sort _tgsdrop_id
+tempfile tmp2
+save tmp2, replace
+
+use tmp1
+merge 1:1 _tgsdrop_id using "tmp2"
+drop _tgsdrop*
+drop _merge
+
+rename qtime `stub'q`q'_time
+
+end
+
+capture program drop sp_survival
+program sp_survival
+
+syntax, sp(numlist integer max=1 >0) [stub(str)]
+
+local cmd = e(cmd)
+if "`cmd'" != "cox" {
+  display "This function is for cox regression"
+  error 301
+}
+
+capture confirm variable _basesurv
+if _rc{
+  predict double _basesurv, basesurv
+}
+
+
+gen _tgsdrop_t = _t if _t <= `sp'
+egen _tgsdrop_max_t = max(_tgsdrop_t)
+
+gen long _tgsdrop_id = _n 
+sum _tgsdrop_id if _t == _tgsdrop_max_t, meanonly 
+gen double _tgsdrop_basesurv = _basesurv[`r(min)']
+
+predict _tgsdrop_xb, xb
+gen double `stub'sp_`sp' = _tgsdrop_basesurv^exp(_tgsdrop_xb)
+
+drop _tgsdrop*
+end
