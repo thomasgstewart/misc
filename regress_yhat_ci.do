@@ -26,6 +26,20 @@ if "`cmd'" != "regress" {
 
 	local dv = e(depvar)
 	
+	if strlen("`stub'") > 32-9 {
+	  display as error "Your variable stub has too many characters)."
+	  exit
+	}
+	
+	if strlen("`stub'`dv'")+7 > 32 {
+	  display as error "NOTE: " as text "Because STATA variable names are limited to 32 characters,"
+	  display "the generated variables will have a different name than usual. If you used"
+	  display "the drop command, variables may be unintentionally overwritten."
+	  display "Short name: " as error "`stub'y_hat"
+	  display as text "The usual, but overly long variable name: " as error "`stub'`dv'_hat"
+	  local dv = "y"
+	}
+	
 	if "`drop'" == "drop" {
 		capture fussydrop `stub'`dv'_hat
 		capture fussydrop `stub'`dv'_hat_lb
