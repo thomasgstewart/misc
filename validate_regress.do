@@ -12,10 +12,8 @@ restore
 predict _yhat, xb
 
 quietly corr _yhat `2'
-
-drop _yhat
-
 return scalar rho = r(rho)
+drop _yhat
 end
 
 
